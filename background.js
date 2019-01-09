@@ -17,15 +17,27 @@ browser.omnibox.onInputEntered.addListener((text, disposition) => {
         return;
     }
 
+    const HIDE = 1;
+    const SHOW = 2;
+    const NOTHING = 3;
+    let on_match_action = SHOW;
+    let not_match_action = HIDE;
+
     // Allows for inverted searches
-    var inverted = false;
     if (text.charAt(0) === '!') {
-        inverted = true;
+        on_match_action = HIDE;
+        not_match_action = NOTHING;
+        text = text.slice(1);
+    }
+    // Allows user to unhide specific webpages
+    if (text.charAt(0) === '|') {
+        on_match_action = SHOW;
+        not_match_action = NOTHING;
         text = text.slice(1);
     }
 
     // Build regex for our filter
-    var filter = RegExp(text, "i");
+    let filter = RegExp(text, "i");
     // Apply filter to tabs in current window
     browser.tabs.query({
         currentWindow: true
@@ -33,15 +45,14 @@ browser.omnibox.onInputEntered.addListener((text, disposition) => {
         for (let tab of tabs) {
             if ((filter.test(tab.title) || filter.test(tab.url))) {
                 // At least one matched
-                // Hide any tabs that match a condition when inverted
-                if (inverted) {
+                if (on_match_action == HIDE) {
                     browser.tabs.hide(tab.id);
-                } else {
+                } else if (on_match_action == SHOW) {
                     browser.tabs.show(tab.id);
                 }
             }
             // Hide tabs that didn't match a condition when not inverted
-            else if (!inverted) {
+            else if (not_match_action == HIDE) {
                 // Didn't match
                 browser.tabs.hide(tab.id);
             }
