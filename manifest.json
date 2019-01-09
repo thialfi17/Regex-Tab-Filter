@@ -1,0 +1,19 @@
+{
+    "name": "Regex Tab Filter",
+    "description" : "Hides all tabs whose title or URL doesn't match a regular expression. To use, type 'tf' followed by a regular expression into the url bar. The regular expression is case insensitive.",
+    "version": "1.2.1",
+    "applications": {
+      "gecko": {
+        "strict_min_version": "61.0a1"
+      }
+    },
+    "background": {
+      "scripts": ["background.js"]
+    },
+    "omnibox": { "keyword" : "tf" },
+    "manifest_version": 2,
+    "permissions": [
+      "tabs", 
+      "tabHide"
+    ]
+  }
