@@ -2,6 +2,55 @@
 //      DON'T FORGET TO REMOVE DEBUGGING CODE!!!
 //
 
+// Add context menu item for hiding tabs
+browser.menus.create({
+    id: "hide_tab",
+    // Add locale info
+    title: "Hide Tab",
+    visible: false,
+    contexts: ["tab"]
+});
+
+browser.menus.onClicked.addListener((info, tab) => {
+    switch(info.menuItemId) {
+        case "hide_tab":
+            browser.tabs.query({
+                highlighted: true
+            }).then((tabs) => {
+                for (let tab of tabs) {
+                    browser.tabs.hide(tab.id);
+                }
+            })
+            break;
+    }
+});
+
+browser.tabs.onHighlighted.addListener((highlightInfo) => {
+    if (highlightInfo.tabIds.length == 1) {
+        browser.menus.update(
+            "hide_tab",
+            {
+                visible: false
+            }
+        );
+    } else if (highlightInfo.tabIds.length == 2) {
+        browser.menus.update(
+            "hide_tab",
+            {
+                title: "Hide Tab",
+                visible: true
+            }
+        );
+    } else if (highlightInfo.tabIds.length == 3) {
+        browser.menus.update(
+            "hide_tab",
+            {
+                title: "Hide Tabs"
+            }
+        );
+    }
+});
+
 browser.omnibox.onInputEntered.addListener((text, disposition) => {
     // If no text given, show all tabs
     if (text === "") {
