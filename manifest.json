@@ -1,6 +1,7 @@
 {
-    "name": "Regex Tab Filter",
-    "description" : "Hides all tabs whose title or URL doesn't match a regular expression. To use, type 'tf' followed by a regular expression into the url bar. The regular expression is case insensitive.",
+    "name": "__MSG_extensionName__",
+    "description" : "__MSG_extensionDescription__",
+    "default_locale": "en",
     "version": "1.3.1",
     "applications": {
       "gecko": {

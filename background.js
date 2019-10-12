@@ -5,8 +5,7 @@
 // Add context menu item for hiding tabs
 browser.menus.create({
     id: "hide_tab",
-    // Add locale info
-    title: "Hide Tab",
+    title: browser.i18n.getMessage("menuItemHideTab"),
     visible: false,
     contexts: ["tab"]
 });
@@ -37,7 +36,7 @@ browser.tabs.onHighlighted.addListener((highlightInfo) => {
         browser.menus.update(
             "hide_tab",
             {
-                title: "Hide Tab",
+                title: browser.i18n.getMessage("menuItemHideTab"),
                 visible: true
             }
         );
@@ -45,7 +44,7 @@ browser.tabs.onHighlighted.addListener((highlightInfo) => {
         browser.menus.update(
             "hide_tab",
             {
-                title: "Hide Tabs"
+                title: browser.i18n.getMessage("menuItemHideTabs")
             }
         );
     }

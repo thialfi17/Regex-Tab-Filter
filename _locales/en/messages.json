@@ -1,0 +1,21 @@
+{
+    "extensionName": {
+      "message": "Regex Tab Filter",
+      "description": "Name of the extension."
+    },
+  
+    "extensionDescription": {
+      "message": "Hides all tabs whose title or URL doesn't match a regular expression. To use, type 'tf' followed by a regular expression into the url bar. The regular expression is case insensitive.",
+      "description": "Description of the add-on."
+    },
+  
+    "menuItemHideTab": {
+      "message": "Hide Tab",
+      "description": "The menu item that users click to hide the selected tabs"
+    },
+  
+    "menuItemHideTabs": {
+      "message": "Hide Tabs",
+      "description": "Plural form of menuItemHideTab"
+    }
+}
