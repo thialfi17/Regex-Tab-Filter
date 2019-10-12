@@ -25,6 +25,7 @@ browser.menus.onClicked.addListener((info, tab) => {
 });
 
 browser.tabs.onHighlighted.addListener((highlightInfo) => {
+    // Hide menu option if only current tab is highlighted since it can't be hidden anyway
     if (highlightInfo.tabIds.length == 1) {
         browser.menus.update(
             "hide_tab",
@@ -32,6 +33,7 @@ browser.tabs.onHighlighted.addListener((highlightInfo) => {
                 visible: false
             }
         );
+    // Show the menu item with the singular form when two tabs are highlighted
     } else if (highlightInfo.tabIds.length == 2) {
         browser.menus.update(
             "hide_tab",
@@ -40,6 +42,7 @@ browser.tabs.onHighlighted.addListener((highlightInfo) => {
                 visible: true
             }
         );
+    // Change the menu item to show the plural form when more than three tabs are highlighted
     } else if (highlightInfo.tabIds.length == 3) {
         browser.menus.update(
             "hide_tab",
@@ -52,26 +55,28 @@ browser.tabs.onHighlighted.addListener((highlightInfo) => {
 
 browser.omnibox.onInputEntered.addListener((text, disposition) => {
     // If no text given, show all tabs
-    if (text === "") {
-        // Show all tabs that are hidden in the current window
-        browser.tabs.query({
-            currentWindow:true,
-            hidden: true
-        }).then((tabs) => {
-            for (let tab of tabs) {
-                browser.tabs.show(tab.id);
-            }
-        });
-        return;
-    }
+    // if (text === "") {
+    //     // Show all tabs that are hidden in the current window
+    //     browser.tabs.query({
+    //         currentWindow:true,
+    //         hidden: true
+    //     }).then((tabs) => {
+    //         for (let tab of tabs) {
+    //             browser.tabs.show(tab.id);
+    //         }
+    //     });
+    //     return;
+    // }
 
     const HIDE = 1;
     const SHOW = 2;
     const NOTHING = 3;
+
+    // Default actions when no modifiers are present
     let on_match_action = SHOW;
     let not_match_action = HIDE;
 
-    // Allows for inverted searches
+    // Allows user to hide specific webpages
     if (text.charAt(0) === '!') {
         on_match_action = HIDE;
         not_match_action = NOTHING;
@@ -89,10 +94,10 @@ browser.omnibox.onInputEntered.addListener((text, disposition) => {
     // Apply filter to tabs in current window
     browser.tabs.query({
         currentWindow: true
-    }).then((tabs) => { // Hides tabs if they don't match the filter in their URL or title
+    }).then((tabs) => {
         for (let tab of tabs) {
+            // Apply actions on tabs if they match
             if ((filter.test(tab.title) || filter.test(tab.url))) {
-                // At least one matched
                 if (on_match_action == HIDE) {
                     browser.tabs.hide(tab.id);
                 } else if (on_match_action == SHOW) {
@@ -101,7 +106,6 @@ browser.omnibox.onInputEntered.addListener((text, disposition) => {
             }
             // Hide tabs that didn't match a condition when not inverted
             else if (not_match_action == HIDE) {
-                // Didn't match
                 browser.tabs.hide(tab.id);
             }
         }
