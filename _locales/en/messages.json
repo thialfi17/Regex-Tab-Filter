@@ -22,5 +22,11 @@
     "menuItemHideOtherTabs": {
       "message": "Hide Other Tabs",
       "description": "Menu item for hiding non-highlighted tabs"
+    },
+
+    "menuItemShowTabs": {
+        "message": "Restore Hidden Tabs",
+        "description": "Menu item for showing all hidden tabs"
     }
+
 }
