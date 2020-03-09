@@ -8,28 +8,7 @@ browser.menus.create({
     title: browser.i18n.getMessage("menuItemHideTab"),
     visible: false,
     contexts: ["tab"]
-}, function () {
-    browser.tabs.query({
-        highlighted: true
-    }).then((tabs) => {
-        if (tabs.length == 2) {
-            browser.menus.update(
-                "hide_tab",
-                {
-                    visible: true
-                }
-            );
-        } else if (tabs.length >= 3) {
-            browser.menus.update(
-                "hide_tab",
-                {
-                    visible: true,
-                    title: browser.i18n.getMessage("menuItemHideTabs")
-                }
-            );
-        }
-    });
-});
+}, checkHideTabs);
 
 // Add context menu item for hiding other tabs
 browser.menus.create({
@@ -37,21 +16,7 @@ browser.menus.create({
     title: browser.i18n.getMessage("menuItemHideOtherTabs"),
     visible: true,
     contexts: ["tab"]
-}, function() {
-    browser.tabs.query({
-        hidden: false,
-        highlighted: false
-    }).then((tabs) => {
-        if (tabs.length == 0) {
-            browser.menus.update(
-                "hide_other_tabs",
-                {
-                    visible: false
-                }
-            );
-        }
-    });
-});
+}, checkHideOtherTabs);
 
 // Add menu item to show all hidden tabs. This is already easy to do with the
 // address bar but might as well add it to the context menu since the context
@@ -61,30 +26,20 @@ browser.menus.create({
     title: browser.i18n.getMessage("menuItemShowTabs"),
     visible: false,
     contexts: ["tab"]
-}, function() {
-    browser.tabs.query({
-        hidden: true
-    }).then((tabs) => {
-        if (tabs.length > 1) {
-            browser.menus.update(
-                "show_tabs",
-                {
-                    visible: true
-                }
-            );
-        }
-    });
-});
+}, checkShowTabs);
 
 browser.menus.onClicked.addListener((info, tab) => {
     switch(info.menuItemId) {
         case "hide_tab":
             browser.tabs.query({
-                highlighted: true
+                currentWindow: true,
+                highlighted: true,
+                hidden: false
             }).then((tabs) => {
                 browser.tabs.hide(getTabIds(tabs));
             });
 
+            // Tabs remain highlighted after being hidden which means the button doesn't disappear.
             browser.menus.update(
                 "hide_tab",
                 {
@@ -94,8 +49,8 @@ browser.menus.onClicked.addListener((info, tab) => {
             break;
         case "hide_other_tabs":
             browser.tabs.query({
-                highlighted: false,
-                currentWindow: true
+                currentWindow: true,
+                highlighted: false
             }).then((tabs) => {
                 browser.tabs.hide(getTabIds(tabs));
             })
@@ -112,59 +67,15 @@ browser.menus.onClicked.addListener((info, tab) => {
 });
 
 browser.tabs.onHighlighted.addListener((highlightInfo) => {
-    // Hide menu option if only current tab is highlighted since it can't be hidden anyway
-    if (highlightInfo.tabIds.length == 1) {
-        browser.menus.update(
-            "hide_tab",
-            {
-                visible: false
-            }
-        );
-    // Show the menu item with the singular form when two tabs are highlighted
-    } else if (highlightInfo.tabIds.length == 2) {
-        browser.menus.update(
-            "hide_tab",
-            {
-                title: browser.i18n.getMessage("menuItemHideTab"),
-                visible: true
-            }
-        );
-    // Change the menu item to show the plural form when more than three tabs are highlighted
-    } else if (highlightInfo.tabIds.length > 2) {
-        browser.menus.update(
-            "hide_tab",
-            {
-                visible: true,
-                title: browser.i18n.getMessage("menuItemHideTabs")
-            }
-        );
-    }
-
+    checkHideTabs();
     checkHideOtherTabs();
 });
 
+// Triggers when a tab is hidden or shown
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
-    browser.tabs.query({
-        hidden: true
-    }).then((tabs) => {
-        if (tabs.length > 0) {
-            browser.menus.update(
-                "show_tabs",
-                {
-                    visible: true
-                }
-            );
-        } else {
-            browser.menus.update(
-                "show_tabs",
-                {
-                    visible: false
-                }
-            );
-        }
-    });
-
+    checkHideTabs();
     checkHideOtherTabs();
+    checkShowTabs();
 }, {
     properties: ["hidden"]
 });
@@ -201,6 +112,7 @@ browser.omnibox.onInputEntered.addListener((text, disposition) => {
         matchIds = [];
         nonMatchIds =[];
 
+        // Sort the tabs into two arrays - matching and non-matching
         for (let tab of tabs) {
             // Apply actions on tabs if they match
             if ((filter.test(tab.title) || filter.test(tab.url))) {
@@ -212,6 +124,7 @@ browser.omnibox.onInputEntered.addListener((text, disposition) => {
             }
         }
 
+        // Apply appropriate action to the arrays
         if (on_match_action == HIDE) {
             browser.tabs.hide(matchIds);
         } else if (on_match_action == SHOW) {
@@ -226,6 +139,7 @@ browser.omnibox.onInputEntered.addListener((text, disposition) => {
     });
 });
 
+// Converts an array of tabs into an array of tabIds for use with tabs.hide
 function getTabIds(tabs) {
     let tabIds = [];
     for (let tab of tabs) {
@@ -234,11 +148,49 @@ function getTabIds(tabs) {
     return tabIds;
 }
 
+// Check if we want the hide tabs menu item to show
+function checkHideTabs() {
+    browser.tabs.query({
+        hidden: false,
+        highlighted: true
+    }).then((tabs) => {
+        // Hide menu option if only current tab is highlighted since it can't be hidden anyway
+        if (tabs.length == 1) {
+            browser.menus.update(
+                "hide_tab",
+                {
+                    visible: false
+                }
+            );
+        // Show the menu item with the singular form when two tabs are highlighted
+        } else if (tabs.length == 2) {
+            browser.menus.update(
+                "hide_tab",
+                {
+                    title: browser.i18n.getMessage("menuItemHideTab"),
+                    visible: true
+                }
+            );
+        // Change the menu item to show the plural form when more than three tabs are highlighted
+        } else if (tabs.length > 2) {
+            browser.menus.update(
+                "hide_tab",
+                {
+                    visible: true,
+                    title: browser.i18n.getMessage("menuItemHideTabs")
+                }
+            );
+        }
+    });
+}
+
+// Check if we want the hide other tabs menu item to show
 function checkHideOtherTabs() {
     browser.tabs.query({
         hidden: false,
-        highlighted: false
+        highlighted: false // Highlighted tabs don't get hidden
     }).then((tabs) => {
+        // Check if there are any non-highlighted visible tabs
         if (tabs.length > 0) {
             browser.menus.update(
                 "hide_other_tabs",
@@ -246,9 +198,36 @@ function checkHideOtherTabs() {
                     visible: true
                 }
             );
-        } else {
+        }
+        else {
             browser.menus.update(
                 "hide_other_tabs",
+                {
+                    visible: false
+                }
+            );
+        }
+    });
+}
+
+// Check if we want the show hidden tabs menu item to show
+function checkShowTabs() {
+    browser.tabs.query({
+        hidden: true
+    }).then((tabs) => {
+        // There are hidden tabs
+        if (tabs.length > 0) {
+            browser.menus.update(
+                "show_tabs",
+                {
+                    visible: true
+                }
+            );
+        }
+        // No hidden tabs so don't show
+        else {
+            browser.menus.update(
+                "show_tabs",
                 {
                     visible: false
                 }
