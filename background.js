@@ -2,11 +2,19 @@
 //      DON'T FORGET TO REMOVE DEBUGGING CODE!!!
 //
 
-// Add context menu item for hiding tabs
+// Add context menu item for hiding selected tabs
 browser.menus.create({
     id: "hide_tab",
     title: browser.i18n.getMessage("menuItemHideTab"),
     visible: false,
+    contexts: ["tab"]
+});
+
+// Add context menu item for hiding other tabs
+browser.menus.create({
+    id: "hide_other_tabs",
+    title: browser.i18n.getMessage("menuItemHideOtherTabs"),
+    visible: true,
     contexts: ["tab"]
 });
 
@@ -15,6 +23,16 @@ browser.menus.onClicked.addListener((info, tab) => {
         case "hide_tab":
             browser.tabs.query({
                 highlighted: true
+            }).then((tabs) => {
+                for (let tab of tabs) {
+                    browser.tabs.hide(tab.id);
+                }
+            })
+            break;
+        case "hide_other_tabs":
+            browser.tabs.query({
+                highlighted: false,
+                currentWindow: true
             }).then((tabs) => {
                 for (let tab of tabs) {
                     browser.tabs.hide(tab.id);
@@ -34,7 +52,7 @@ browser.tabs.onHighlighted.addListener((highlightInfo) => {
             }
         );
     // Show the menu item with the singular form when two tabs are highlighted
-    } else if (highlightInfo.tabIds.length == 2) {
+    } else if (highlightInfo.tabId.length == 2) {
         browser.menus.update(
             "hide_tab",
             {
@@ -54,20 +72,6 @@ browser.tabs.onHighlighted.addListener((highlightInfo) => {
 });
 
 browser.omnibox.onInputEntered.addListener((text, disposition) => {
-    // If no text given, show all tabs
-    // if (text === "") {
-    //     // Show all tabs that are hidden in the current window
-    //     browser.tabs.query({
-    //         currentWindow:true,
-    //         hidden: true
-    //     }).then((tabs) => {
-    //         for (let tab of tabs) {
-    //             browser.tabs.show(tab.id);
-    //         }
-    //     });
-    //     return;
-    // }
-
     const HIDE = 1;
     const SHOW = 2;
     const NOTHING = 3;
@@ -91,6 +95,7 @@ browser.omnibox.onInputEntered.addListener((text, disposition) => {
 
     // Build regex for our filter
     let filter = RegExp(text, "i");
+
     // Apply filter to tabs in current window
     browser.tabs.query({
         currentWindow: true

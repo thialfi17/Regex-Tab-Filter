@@ -17,5 +17,10 @@
     "menuItemHideTabs": {
       "message": "Hide Tabs",
       "description": "Plural form of menuItemHideTab"
+    },
+
+    "menuItemHideOtherTabs": {
+      "message": "Hide Other Tabs",
+      "description": "Menu item for hiding non-highlighted tabs"
     }
 }
