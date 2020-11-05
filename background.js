@@ -18,9 +18,7 @@ browser.menus.create({
     contexts: ["tab"]
 }, checkHideOtherTabs);
 
-// Add menu item to show all hidden tabs. This is already easy to do with the
-// address bar but might as well add it to the context menu since the context
-// menu can already do so much.
+// Add menu item to show all hidden tabs.
 browser.menus.create({
     id: "show_tabs",
     title: browser.i18n.getMessage("menuItemShowTabs"),
@@ -151,6 +149,7 @@ function getTabIds(tabs) {
 // Check if we want the hide tabs menu item to show
 function checkHideTabs() {
     browser.tabs.query({
+        currentWindow: true,
         hidden: false,
         highlighted: true
     }).then((tabs) => {
@@ -187,6 +186,7 @@ function checkHideTabs() {
 // Check if we want the hide other tabs menu item to show
 function checkHideOtherTabs() {
     browser.tabs.query({
+        currentWindow: true,
         hidden: false,
         highlighted: false // Highlighted tabs don't get hidden
     }).then((tabs) => {
@@ -213,6 +213,7 @@ function checkHideOtherTabs() {
 // Check if we want the show hidden tabs menu item to show
 function checkShowTabs() {
     browser.tabs.query({
+        currentWindow: true,
         hidden: true
     }).then((tabs) => {
         // There are hidden tabs
